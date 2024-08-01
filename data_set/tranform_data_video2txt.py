@@ -93,7 +93,11 @@ def read_vieo(video_path, label):
 
                 if results.pose_landmarks and (results.left_hand_landmarks or results.right_hand_landmarks):
                     lm = make_landmark_timestep(results.pose_landmarks, results.right_hand_landmarks, results.left_hand_landmarks)
-                    lm_list.append(lm)
+                    #kiem tra co nhan dien du 25 frame k 
+                    if len(lm) >= NUM_FRAME_PROCESS+1: #(25 frame + 1 label)
+                        lm_list.append(lm)
+                    else: 
+                        print('Insufficient number of frames')
                     frame = draw_to_img(results, mp_drawing, frame)
 
                 cv2.imshow('Pose Landmarks', frame)
@@ -103,7 +107,7 @@ def read_vieo(video_path, label):
                 break
         cap.release()
         cv2.destroyAllWindows()
-        # lm_list = fixed_num_frame(lm_list, NUM_FRAME_PROCESS)
+        lm_list = fixed_num_frame(lm_list, NUM_FRAME_PROCESS)
         print('count frame:::', len(lm_list))
         lm_list.append(label)
 
