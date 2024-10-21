@@ -1,34 +1,46 @@
+from config.configs import config
 import cv2
 import mediapipe as mp
 import numpy as np
 import json
-from tqdm import tqdm
+import os
+import torch
 
-OUTPUT_FILE = "dataset.txt"
-TOTAL_POSE_LANDMARKS = 23  # so diem lay tren pose 
-TOTAL_HAND_LANDMARKS = 21  # so diem lay tren tay
-TOTAL_HANDS = 2   
-NUM_FRAME_PROCESS = 25 # So frame muon xu ly
-NOSE_POSITION = 0
+
+INPUT_FOLDER_PATH = config.input_path
+OUTPUT_FOLDER_PATH = config.output_path
+TOTAL_POSE_LANDMARKS = config.total_pose_lm  
+TOTAL_HAND_LANDMARKS = config.total_hand_lm  
+TOTAL_HANDS = config.total_hand  
+NUM_FRAME_PROCESS = config.num_fr_process
+NOSE_POSITION = config.nose_position
+
+LIST_BODY_LANDMARKS =  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+
+LIST_HAND_LANDMARKS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_holistic = mp.solutions.holistic
 
 def make_landmark_timestep(pose_landmarks, right_hand_landmarks=None, left_hand_landmarks=None):
-    c_lm = [0] * (TOTAL_POSE_LANDMARKS * 2 + TOTAL_HAND_LANDMARKS * 2 * TOTAL_HANDS)
+    c_lm = []
     
-    for i in range(TOTAL_POSE_LANDMARKS):
-        c_lm[i * 2] = pose_landmarks.landmark[i].x
-        c_lm[i * 2 + 1] = pose_landmarks.landmark[i].y
+    for i in LIST_BODY_LANDMARKS:
+        c_lm.append([pose_landmarks.landmark[i].x, pose_landmarks.landmark[i].y, pose_landmarks.landmark[i].visibility])
     
     if right_hand_landmarks:
-        for i in range(TOTAL_HAND_LANDMARKS):
-            c_lm[(TOTAL_POSE_LANDMARKS + i) * 2] = right_hand_landmarks.landmark[i].x
-            c_lm[(TOTAL_POSE_LANDMARKS + i) * 2 + 1] = right_hand_landmarks.landmark[i].y
+        for i in right_hand_landmarks.landmark:
+            c_lm.append([i.x, i.y, i.visibility])
+    else:
+        c_lm.extend([[0,0,0]] * 21)
     
     if left_hand_landmarks:
-        for i in range(TOTAL_HAND_LANDMARKS):
-            c_lm[(TOTAL_POSE_LANDMARKS + TOTAL_HAND_LANDMARKS + i) * 2] = left_hand_landmarks.landmark[i].x
-            c_lm[(TOTAL_POSE_LANDMARKS + TOTAL_HAND_LANDMARKS + i) * 2 + 1] = left_hand_landmarks.landmark[i].y
-
-    c_lm = transform_to_nose_coordinate(c_lm, NOSE_POSITION)    
+        for i in left_hand_landmarks.landmark:
+            c_lm.append([i.x, i.y, i.visibility])
+    else:
+        c_lm.extend([[0,0,0]] * 21)
     return c_lm
 
 # Dua toa do ve cung 1 goc toa do (goc la diem 0: mui)
@@ -68,7 +80,7 @@ def draw_to_img(holistic_results, mp_drawing, image):
     return image
 
 #  doc video va trich xuat du lieu
-def read_vieo(video_path, label):
+def read_video(video_path, label):
     cap = cv2.VideoCapture(video_path)
     lm_list = []
 
@@ -98,9 +110,6 @@ def read_vieo(video_path, label):
                         lm_list.append(lm)
                     else: 
                         print('Insufficient number of frames')
-                    frame = draw_to_img(results, mp_drawing, frame)
-
-                cv2.imshow('Pose Landmarks', frame)
                 if cv2.waitKey(1) == ord('q'):
                     break
             else:
@@ -108,8 +117,6 @@ def read_vieo(video_path, label):
         cap.release()
         cv2.destroyAllWindows()
         lm_list = fixed_num_frame(lm_list, NUM_FRAME_PROCESS)
-        print('count frame:::', len(lm_list))
-        lm_list.append(label)
 
         return lm_list
 
@@ -127,50 +134,29 @@ def fixed_num_frame(lst_frame, num_frame):
 
     return new_lst
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_holistic = mp.solutions.holistic
-
-# lay data tu file json (vi lay data ASL)
-"""
-VD: 
-    {
-        "gloss": "book",
-        "video_path": "C:/Users/ledin/Downloads/archive/wlasl-complete/videos/69241.mp4",
-        "frame_start": 1,
-        "frame_end": -1,
-        "split": "train"
-    }
-"""
-with open('WLASL_parsed_data.json', 'r') as json_file:
-    all_data = json.load(json_file)
-#file label chua nhan  VD: "book": "0"
-with open('label.json', 'r') as json_file:
-    dir_label = json.load(json_file)
-
-# lay 1000 row  de train
-train_data = all_data[:1000]
-lst_data = []
-try:
-    for i in tqdm(range(len(train_data)), ncols=100):
-        start = train_data[i]['frame_start']
-        end = train_data[i]['frame_end']
-        if (start == 1 and end == -1):
-            video_path = train_data[i]['video_path']       
-        
+def convert_list_video_to_mediapipe(input_folder_path, words, output_folder_path):
+    
+    for file_name in os.listdir(input_folder_path):
+        # Tạo đường dẫn đầy đủ của file
+        input_file = os.path.join(input_folder_path, file_name)
+        # Kiểm tra nếu đó là file
+        if not input_file.endswith('.txt'):
+            print(f"Đang xử lý file: {file_name}")
+            # Thực hiện hành động với file
             try:
-                data = read_vieo(video_path, dir_label[train_data[i]['gloss']])
-                lst_data.append(data)
+                data = read_video(input_file, words)
+                print(10*'10')
+                tensor = torch.tensor(data, dtype=torch.float32)
+                print(10*'9')
+                output_file_path = os.path.join(output_folder_path, file_name + '.pt')
+                print(10*'8')
+                torch.save(tensor, output_file_path)
                 
             except Exception as e:
-                print(f"\nError encoding {video_path}\n{e}")
-                continue   
-except KeyboardInterrupt:
-    print("\nLoading process interrupted by user.")                
+                print(f"\nError encoding {input_file}\n{e}")
+            
 
-# ghi du lieu ra file txt
-with open(OUTPUT_FILE, 'a') as f:
-    for data in lst_data:
-            # moi dong 1 video (25 frame)
-            f.write(','.join(map(str, data)) + '\n')
+
+
+
 
