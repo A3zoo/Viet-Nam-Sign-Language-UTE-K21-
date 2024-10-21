@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .graph_utils import GraphWithPartition
+from graph_utils import GraphWithPartition
 import math
 
 class ConvTemporalGraphical(nn.Module):
@@ -199,7 +199,7 @@ class Model(nn.Module):
                  n_out_features = 256,
                  n_classes = 1000,
                  dropout_ratio = 0.05,
-                 batch_norm=False,):
+                 batch_norm=False,) -> None:
         super().__init__()
 
         self.graph = GraphWithPartition(num_nodes, center, inward_edges)
@@ -251,7 +251,6 @@ class Model(nn.Module):
 
             our input is in shape ntvc
         """
-        x = x.permute(0, 3, 1, 2).contiguous() # NTVC --> NCTV
         N, C, T, V = x.size()
         x = x.permute(0, 3, 1, 2).contiguous() # NCTV -> NVCT
         x = x.view(N, V * C, T)
@@ -266,3 +265,4 @@ class Model(nn.Module):
         x = x.view(N, -1)
 
         return self.head(x)
+

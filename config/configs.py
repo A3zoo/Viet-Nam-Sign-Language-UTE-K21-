@@ -34,7 +34,13 @@ class Config:
         self.total_hand = int(tranfomer_config['TOTAL_HANDS'])
         self.num_fr_process = int(tranfomer_config['NUM_FRAME_PROCESS'])
         self.nose_position = int(tranfomer_config['NOSE_POSITION'])
+        self.list_body = list(map(int, tranfomer_config['LIST_BODY_LANDMARKS'].split(',')))
+        self.list_hand = list(map(int, tranfomer_config['LIST_HAND_LANDMARKS'].split(',')))
 
 config_dir = os.path.dirname(os.path.abspath(__file__))
 config = Config(os.path.join(config_dir, 'config.ini'))
+
+
+if __name__ == '__main__':
+    print(config.list_body)
 
