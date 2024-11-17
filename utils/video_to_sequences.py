@@ -1,19 +1,17 @@
-from config.configs import config
 import cv2
 import mediapipe as mp
 import numpy as np
 import json
 import os
 import torch
+import numpy as np
 
 
-INPUT_FOLDER_PATH = config.input_path
-OUTPUT_FOLDER_PATH = config.output_path
-TOTAL_POSE_LANDMARKS = config.total_pose_lm  
-TOTAL_HAND_LANDMARKS = config.total_hand_lm  
-TOTAL_HANDS = config.total_hand  
-NUM_FRAME_PROCESS = config.num_fr_process
-NOSE_POSITION = config.nose_position
+TOTAL_POSE_LANDMARKS = 25 
+TOTAL_HAND_LANDMARKS = 42 
+TOTAL_HANDS = 2
+NUM_FRAME_PROCESS = 25
+NOSE_POSITION = 0
 
 LIST_BODY_LANDMARKS =  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
 
