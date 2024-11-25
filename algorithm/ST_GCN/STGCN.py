@@ -154,6 +154,7 @@ class FC(nn.Module):
         super().__init__()
         self.dropout = nn.Dropout(p=dropout_ratio)
         self.bn = batch_norm
+        self.n_features = n_features
         if batch_norm:
             self.bn = nn.BatchNorm1d(self.n_features)
             self.bn.weight.data.fill_(1)
