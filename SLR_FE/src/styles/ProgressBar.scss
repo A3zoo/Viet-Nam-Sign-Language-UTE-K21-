@@ -1,0 +1,29 @@
+// Định nghĩa các biến SCSS
+$progress-bar-height: 20px;
+$progress-bar-bg: #f3f3f3;
+$progress-bar-color: #4caf50;
+$progress-bar-radius: 10px;
+$progress-bar-transition: 0.1s linear;
+
+@mixin progress-bar-theme($bg-color, $progress-color) {
+  background-color: $bg-color;
+
+  .progress-bar {
+    background-color: $progress-color;
+  }
+}
+
+// Áp dụng mixin cho kiểu mặc định
+.progress-bar-container {
+  @include progress-bar-theme($progress-bar-bg, $progress-bar-color);
+  width: 100%;
+  height: $progress-bar-height;
+  border-radius: $progress-bar-radius;
+  overflow: hidden;
+  margin: 10px 0;
+
+  .progress-bar {
+    height: 100%;
+    transition: width $progress-bar-transition;
+  }
+}
