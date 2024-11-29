@@ -1,16 +1,10 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Camera } from "@mediapipe/camera_utils";
-import {
-  Holistic,
-  POSE_CONNECTIONS,
-  HAND_CONNECTIONS,
-} from "@mediapipe/holistic";
-import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
+import { Holistic } from "@mediapipe/holistic";
 import ProgressBar from "./ProgressBar";
 import { drawLandmarksOnCanvas } from "../utils/drawLandmarks";
 import { makeLandmarkTimestep } from "../utils/makeLandmarkTimestep";
 import { predict } from "../api/Landmarks";
-import { test } from "../api/test";
 
 const WebcamHolistic = () => {
   const videoRef = useRef(null);
@@ -24,7 +18,8 @@ const WebcamHolistic = () => {
   const cameraRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const coordinates = useRef([]); // Lưu tọa độ các landmarks
-
+  const [detectedLabel, setDetectedLabel] = useState(null);
+  const box = useRef({ x: 0.17, y: 0, width: 0.06, height: 0.08 });
   useEffect(() => {
     const holisticInstance = new Holistic({
       locateFile: (file) =>
@@ -81,27 +76,46 @@ const WebcamHolistic = () => {
     startTime.current = Date.now();
     setMessage("Resting for 2 seconds...");
 
-    try {
-      // Gọi API predict
-      console.log("predict:", coordinates.current);
-      const response = await predict(coordinates.current);
-      // const response = await test(coordinates.current);
-
-      setMessage(`Detected: ${response.label}`); // Cập nhật giao diện với kết quả nhận diện
-    } catch (error) {
-      console.error("Prediction API error:", error);
-      setMessage("Error in detection. Please try again.");
-    } finally {
-      coordinates.current = [];
+    async function awaitPredict() {
+      try {
+        console.log("predict:", coordinates.current);
+        const response = await predict(coordinates.current); // Gọi API
+        setDetectedLabel(response.label); // Cập nhật nhãn phát hiện
+      } catch (error) {
+        console.error("Prediction API error:", error);
+        setMessage("Error in detection. Please try again.");
+      } finally {
+        coordinates.current = []; // Reset tọa độ sau khi gọi API
+      }
     }
+
+    awaitPredict();
   };
 
   const onResults = async (results) => {
     const canvas = canvasRef.current;
     const canvasCtx = canvas.getContext("2d");
 
+    // Lấy kích thước của video và canvas
+    const videoWidth = videoRef.current.videoWidth;
+    const videoHeight = videoRef.current.videoHeight;
+
     canvasCtx.save();
     drawLandmarksOnCanvas(canvasCtx, results);
+
+    // Vẽ ô vuông lên canvas
+    const boxX = box.current.x * videoWidth;
+    const boxY = box.current.y * videoHeight;
+    const boxWidth = box.current.width * videoWidth;
+    const boxHeight = box.current.height * videoHeight;
+
+    // Vẽ nền ô vuông với màu xanh trong suốt
+    canvasCtx.fillStyle = "rgba(0, 255, 0, 0.3)"; // Nền xanh với độ trong suốt
+    canvasCtx.fillRect(boxX, boxY, boxWidth, boxHeight); // Tô nền ô vuông
+
+    // Vẽ viền ô vuông màu xanh
+    canvasCtx.strokeStyle = "green"; // Màu viền xanh
+    canvasCtx.lineWidth = 3; // Độ dày đường viền
 
     if (isRest.current) {
       if (Date.now() - startTime.current >= countdown.current) {
@@ -186,6 +200,24 @@ const WebcamHolistic = () => {
         }}
       >
         <ProgressBar progress={progress} />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          bottom: "20px", // Đặt ở cuối màn hình
+          left: "50%",
+          transform: "translateX(-50%)",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          color: "white",
+          padding: "10px 20px",
+          borderRadius: "10px",
+          fontSize: "18px",
+          textAlign: "center",
+        }}
+      >
+        {detectedLabel
+          ? `Detected Label: ${detectedLabel}`
+          : "No label detected"}
       </div>
     </div>
   );
