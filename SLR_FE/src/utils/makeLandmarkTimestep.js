@@ -28,9 +28,9 @@ export const makeLandmarkTimestep = (holisticResults) => {
     holisticResults.poseLandmarks
       .slice(0, TOTAL_POSE_LANDMARKS)
       .forEach((lm, idx) => {
-        cLm[idx * 3] = lm.x; // X tọa độ
-        cLm[idx * 3 + 1] = lm.y; // Y tọa độ
-        cLm[idx * 3 + 2] = lm.visibility; // Độ tin cậy
+        cLm[idx * 3] = lm.x || 0; // X tọa độ
+        cLm[idx * 3 + 1] = lm.y || 0; // Y tọa độ
+        cLm[idx * 3 + 2] = lm.visibility || 0; // Độ tin cậy....
       });
   }
 
@@ -47,9 +47,9 @@ export const makeLandmarkTimestep = (holisticResults) => {
           handIdx * TOTAL_HAND_LANDMARKS * 3 +
           idx * 3;
 
-        cLm[baseIdx] = lm.x; // X tọa độ
-        cLm[baseIdx + 1] = lm.y; // Y tọa độ
-        cLm[baseIdx + 2] = lm.visibility; // Độ tin cậy
+        cLm[baseIdx] = lm.x || 0; // X tọa độ
+        cLm[baseIdx + 1] = lm.y || 0; // Y tọa độ
+        cLm[baseIdx + 2] = lm.visibility || 0; // Độ tin cậy
       });
     }
   });

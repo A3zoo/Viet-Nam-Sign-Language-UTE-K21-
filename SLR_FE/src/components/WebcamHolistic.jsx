@@ -28,7 +28,7 @@ const WebcamHolistic = () => {
 
     holisticInstance.setOptions({
       selfieMode: true,
-      upperBodyOnly: false,
+      upperBodyOnly: true,
       smoothLandmarks: true,
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5,
