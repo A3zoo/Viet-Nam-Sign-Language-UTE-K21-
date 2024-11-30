@@ -64,7 +64,7 @@ const WebcamHolistic = () => {
     coordinates.current = [];
     // Reset dữ liệu tọa độ
     isRecording.current = true;
-    countdown.current = 3000;
+    countdown.current = 4000;
     startTime.current = Date.now();
     setMessage("Recording coordinates for 3 seconds...");
   };
