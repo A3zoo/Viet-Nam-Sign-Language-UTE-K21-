@@ -5,12 +5,13 @@ import ProgressBar from "./ProgressBar";
 import { drawLandmarksOnCanvas } from "../utils/drawLandmarks";
 import { makeLandmarkTimestep } from "../utils/makeLandmarkTimestep";
 import { predict } from "../api/Landmarks";
+import { speakText } from "../utils/SpeakText";
 
-const WebcamHolistic = () => {
+const WebcamHolistic = ({ addWord }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [holistic, setHolistic] = useState(null);
-  const [message, setMessage] = useState("Waiting for hand detection..."); // Thông báo hiển thị
+  const [message, setMessage] = useState("Hãy thực hiện ký hiệu"); // Thông báo hiển thị
   const isRecording = useRef(false);
   const isRest = useRef(false);
   const startTime = useRef(null);
@@ -28,7 +29,7 @@ const WebcamHolistic = () => {
 
     holisticInstance.setOptions({
       selfieMode: true,
-      upperBodyOnly: false,
+      upperBodyOnly: true,
       smoothLandmarks: true,
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5,
@@ -48,8 +49,8 @@ const WebcamHolistic = () => {
         onFrame: async () => {
           await holistic.send({ image: videoRef.current });
         },
-        width: 1280,
-        height: 720,
+        width: 1920,
+        height: 1080,
       });
       camera.start();
       cameraRef.current = camera;
@@ -66,7 +67,7 @@ const WebcamHolistic = () => {
     isRecording.current = true;
     countdown.current = 3000;
     startTime.current = Date.now();
-    setMessage("Recording coordinates for 3 seconds...");
+    setMessage("Bắt đầu nhận diện");
   };
 
   const stopRecording = async () => {
@@ -74,16 +75,16 @@ const WebcamHolistic = () => {
     isRecording.current = false;
     countdown.current = 2000;
     startTime.current = Date.now();
-    setMessage("Resting for 2 seconds...");
+    setMessage("Thời gian nghỉ 2s");
 
     async function awaitPredict() {
       try {
-        console.log("predict:", coordinates.current);
+        // console.log("predict:", coordinates.current);
         const response = await predict(coordinates.current); // Gọi API
         setDetectedLabel(response.label); // Cập nhật nhãn phát hiện
       } catch (error) {
         console.error("Prediction API error:", error);
-        setMessage("Error in detection. Please try again.");
+        setMessage("Có lỗi xảy ra. Hãy thử lại.");
       } finally {
         coordinates.current = []; // Reset tọa độ sau khi gọi API
       }
@@ -103,24 +104,20 @@ const WebcamHolistic = () => {
     canvasCtx.save();
     drawLandmarksOnCanvas(canvasCtx, results);
 
-    // Vẽ ô vuông lên canvas
-    const boxX = box.current.x * videoWidth;
-    const boxY = box.current.y * videoHeight;
-    const boxWidth = box.current.width * videoWidth;
-    const boxHeight = box.current.height * videoHeight;
+    // // Vẽ ô vuông lên canvas
+    // const boxX = box.current.x * videoWidth;
+    // const boxY = box.current.y * videoHeight;
+    // const boxWidth = box.current.width * videoWidth;
+    // const boxHeight = box.current.height * videoHeight;
 
-    // Vẽ nền ô vuông với màu xanh trong suốt
-    canvasCtx.fillStyle = "rgba(0, 255, 0, 0.3)"; // Nền xanh với độ trong suốt
-    canvasCtx.fillRect(boxX, boxY, boxWidth, boxHeight); // Tô nền ô vuông
-
-    // Vẽ viền ô vuông màu xanh
-    canvasCtx.strokeStyle = "green"; // Màu viền xanh
-    canvasCtx.lineWidth = 3; // Độ dày đường viền
+    // // Vẽ nền ô vuông với màu xanh trong suốt
+    // canvasCtx.fillStyle = "rgba(0, 255, 0, 0.3)"; // Nền xanh với độ trong suốt
+    // canvasCtx.fillRect(boxX, boxY, boxWidth, boxHeight); // Tô nền ô vuông
 
     if (isRest.current) {
       if (Date.now() - startTime.current >= countdown.current) {
         isRest.current = false;
-        setMessage("Ready to detect again!");
+        setMessage("Sẵn sàng nhận diện!");
       }
     } else {
       if (
@@ -162,8 +159,22 @@ const WebcamHolistic = () => {
     }
   }, [isRecording.current, isRest.current]);
 
+  useEffect(() => {
+    if (detectedLabel) {
+      // speakText(detectedLabel);
+      addWord(detectedLabel);
+    }
+  }, [detectedLabel]);
+
   return (
-    <div className="webcam-holistic" style={{ position: "relative" }}>
+    <div
+      className="webcam-holistic"
+      style={{
+        position: "relative",
+        border: "3px solid #000",
+        borderRadius: "10px",
+      }}
+    >
       <video
         ref={videoRef}
         className="input_video"
@@ -177,9 +188,9 @@ const WebcamHolistic = () => {
       <div
         style={{
           position: "absolute",
-          top: "20px",
-          left: "50%",
-          transform: "translateX(-50%)",
+          top: "4%",
+          left: "60%",
+          // transform: "translateX(-50%)",
           backgroundColor: "rgba(0, 0, 0, 0.7)",
           color: "white",
           padding: "10px 20px",
@@ -193,10 +204,10 @@ const WebcamHolistic = () => {
       <div
         style={{
           position: "absolute",
-          top: "20px", // Đặt cách phần trên cùng 20px
-          right: "20px", // Đặt cách phần bên phải 20px
-          width: "200px", // Đặt chiều rộng cụ thể cho thanh (tuỳ chỉnh)
-          zIndex: 10, // Đảm bảo nó nằm trên các phần tử khác
+          top: "4%",
+          left: "5%",
+          width: "200px",
+          zIndex: 10,
         }}
       >
         <ProgressBar progress={progress} />
@@ -204,7 +215,7 @@ const WebcamHolistic = () => {
       <div
         style={{
           position: "absolute",
-          bottom: "20px", // Đặt ở cuối màn hình
+          bottom: "15%", // Đặt ở cuối màn hình
           left: "50%",
           transform: "translateX(-50%)",
           backgroundColor: "rgba(0, 0, 0, 0.7)",
@@ -215,9 +226,7 @@ const WebcamHolistic = () => {
           textAlign: "center",
         }}
       >
-        {detectedLabel
-          ? `Detected Label: ${detectedLabel}`
-          : "No label detected"}
+        {detectedLabel ? `Dự đoán: ${detectedLabel}` : "Chưa có hành động"}
       </div>
     </div>
   );
