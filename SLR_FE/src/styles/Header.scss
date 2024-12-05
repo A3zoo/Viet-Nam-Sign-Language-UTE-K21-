@@ -1,0 +1,58 @@
+/* Header styles */
+.header {
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
+  height: 200px; /* Chiều cao của header */
+  background-color: #333; /* Màu nền của header */
+  color: white; /* Màu chữ */
+  position: fixed; /* Đảm bảo header luôn ở trên cùng */
+  top: 0; /* Đặt vị trí của header ở trên cùng */
+  left: 0;
+  z-index: 1000; /* Đảm bảo header ở trên các phần khác */
+}
+
+.intro {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.5); /* Màu nền mờ */
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+}
+
+.intro-text h1 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.intro-text p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.btn-custom {
+  background-color: #f39c12; /* Màu nền của nút */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-custom:hover {
+  background-color: #e67e22; /* Màu nền khi hover */
+}

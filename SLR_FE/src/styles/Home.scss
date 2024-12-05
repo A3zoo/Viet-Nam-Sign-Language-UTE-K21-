@@ -1,0 +1,88 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Chiếm toàn bộ chiều cao của màn hình */
+}
+
+.header {
+  height: 20%; /* Chiều cao phần header, chiếm 20% của màn hình */
+  background-color: #f0f0f0; /* Màu nền cho header */
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-content {
+  display: flex;
+  flex: 1; /* Phần main content sẽ chiếm phần còn lại của không gian */
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 20px;
+  overflow: hidden; /* Đảm bảo không có phần cuộn trong main content */
+  margin-bottom: 4px;
+}
+
+.webcamContainer {
+  width: 80%; /* Phần webcam chiếm 40% chiều rộng của màn hình */
+  //   height: 100%; /* Chiều cao webcam chiếm toàn bộ chiều cao còn lại */
+}
+
+.textContainer {
+  width: 48%; /* Phần text chiếm khoảng 48% chiều rộng */
+  height: 50%; /* Chiều cao text sẽ chiếm toàn bộ chiều cao còn lại */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.textBox {
+  width: 80%;
+  height: 60%;
+  border: 2px solid #fff;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  color: #333;
+  padding: 10px;
+  text-align: center;
+}
+
+.textContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.textBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  border: 2px solid #fff;
+  background-color: #f0f0f0;
+  width: 80%;
+  max-width: 400px;
+  text-align: left;
+}
+
+.textBox div {
+  margin-bottom: 10px; /* Tạo khoảng cách giữa các dòng */
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
