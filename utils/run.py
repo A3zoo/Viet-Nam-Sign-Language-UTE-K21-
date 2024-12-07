@@ -3,8 +3,8 @@ import os
 import shutil
 import json
 # Đường dẫn đến thư mục bạn muốn duyệt
-parent_dir = 'D:\\SPKT\\HK1_n4\TLCN\\Sign_Language_Recognition\\Video_dataset'
-out_put = 'D:\\SPKT\\HK1_n4\TLCN\\Sign_Language_Recognition\\data_set\\mediapipe_sequences'
+parent_dir = 'Video_dataset'
+out_put = 'mediapipe_sequences'
 # Duyệt qua tất cả các thư mục trong thư mục cha
 for folder_name in os.listdir(parent_dir):
     input_folder = os.path.join(parent_dir, folder_name)
