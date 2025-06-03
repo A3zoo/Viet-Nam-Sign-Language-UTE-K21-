@@ -5,9 +5,14 @@ import ProgressBar from "./ProgressBar";
 import { drawLandmarksOnCanvas } from "../utils/drawLandmarks";
 import { makeLandmarkTimestep } from "../utils/makeLandmarkTimestep";
 import { predict } from "../api/Landmarks";
-import { speakText } from "../utils/SpeakText";
 
-const WebcamHolistic = ({ addWord }) => {
+const WebcamHolistic = ({
+  addWord,
+  awaitMergeSentence,
+  onClickMerge,
+  listWord,
+  setListWord,
+}) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [holistic, setHolistic] = useState(null);
@@ -21,6 +26,24 @@ const WebcamHolistic = ({ addWord }) => {
   const coordinates = useRef([]); // Lưu tọa độ các landmarks
   const [detectedLabel, setDetectedLabel] = useState(null);
   const box = useRef({ x: 0.17, y: 0, width: 0.06, height: 0.08 });
+  const isSpeak = useRef(false);
+  const handInBoxTimer = useRef(null);
+  const handInBoxStartTime = useRef(null);
+  const currentListWord = useRef(listWord);
+
+  // Cập nhật currentListWord khi listWord thay đổi
+  useEffect(() => {
+    currentListWord.current = listWord;
+    console.log("listWord updated in ref:", currentListWord.current);
+  }, [listWord]);
+
+  useEffect(() => {
+    if (detectedLabel) {
+      console.log("New detected label:", detectedLabel);
+      setListWord((prevList) => [...prevList, detectedLabel]);
+    }
+  }, [detectedLabel]);
+
   useEffect(() => {
     const holisticInstance = new Holistic({
       locateFile: (file) =>
@@ -93,6 +116,45 @@ const WebcamHolistic = ({ addWord }) => {
     awaitPredict();
   };
 
+  // const checkHand = (canvasCtx, results) => {
+  //   // Biến để theo dõi thời gian chờ (ngăn không cho gọi lại trong 2s)
+  //   let canRead = true;
+
+  //   if (results.rightHandLandmarks) {
+  //     const x = results.rightHandLandmarks[8].x * canvasCtx.canvas.width;
+  //     const y = results.rightHandLandmarks[8].y * canvasCtx.canvas.height;
+
+  //     // Kiểm tra xem ngón tay có nằm trong khu vực quy định không
+  //     if (x < 65 && x > 20 && y < 45 && y > 30 && canRead) {
+  //       isSpeak.current = true;
+  //       console.log("read");
+
+  //       const read = async () => {
+  //         if (isSpeak.current) {
+  //           await awaitMergeSentence();
+  //         }
+  //       };
+
+  //       read();
+
+  //       canRead = false;
+  //       setTimeout(() => {
+  //         canRead = true;
+  //       }, 2000);
+  //     }
+  //   }
+  // };
+
+  useEffect(() => {
+    if (isSpeak.current) {
+      console.log("doc");
+      // awaitReadSentence();
+      // isSpeak.current = false;
+    } else {
+      console.log("not true");
+    }
+  }, [isSpeak.current]);
+
   const onResults = async (results) => {
     const canvas = canvasRef.current;
     const canvasCtx = canvas.getContext("2d");
@@ -104,15 +166,50 @@ const WebcamHolistic = ({ addWord }) => {
     canvasCtx.save();
     drawLandmarksOnCanvas(canvasCtx, results);
 
-    // // Vẽ ô vuông lên canvas
-    // const boxX = box.current.x * videoWidth;
-    // const boxY = box.current.y * videoHeight;
-    // const boxWidth = box.current.width * videoWidth;
-    // const boxHeight = box.current.height * videoHeight;
+    // Vẽ ô vuông bên trái
+    const boxSize = 40;
+    const boxX = 20;
+    const boxY = canvas.height / 2 - boxSize / 2;
 
-    // // Vẽ nền ô vuông với màu xanh trong suốt
-    // canvasCtx.fillStyle = "rgba(0, 255, 0, 0.3)"; // Nền xanh với độ trong suốt
-    // canvasCtx.fillRect(boxX, boxY, boxWidth, boxHeight); // Tô nền ô vuông
+    canvasCtx.strokeStyle = "#00FF00";
+    canvasCtx.lineWidth = 2;
+    canvasCtx.strokeRect(boxX, boxY, boxSize, boxSize);
+
+    // Kiểm tra nếu tay phải có landmarks
+    if (results?.rightHandLandmarks?.[8]) {
+      const indexFinger = results.rightHandLandmarks[8]; // Ngón trỏ
+      const fingerX = indexFinger.x * canvas.width;
+      const fingerY = indexFinger.y * canvas.height;
+
+      // Kiểm tra xem ngón trỏ có nằm trong ô vuông không
+      if (
+        fingerX >= 50 &&
+        fingerX <= 65 &&
+        fingerY >= 90 &&
+        fingerY <= 120 &&
+        !isRecording.current
+      ) {
+        // Nếu chưa có timer, bắt đầu đếm thời gian
+        if (!handInBoxStartTime.current) {
+          handInBoxStartTime.current = Date.now();
+        }
+
+        // Kiểm tra nếu đã ở trong ô đủ 1 giây
+        if (Date.now() - handInBoxStartTime.current >= 1000) {
+          console.log("Current listWord from ref:", currentListWord.current);
+
+          awaitMergeSentence(currentListWord.current);
+
+          handInBoxStartTime.current = null; // Reset timer
+        }
+      } else {
+        // Nếu tay ra khỏi ô, reset timer
+        handInBoxStartTime.current = null;
+      }
+    } else {
+      // Nếu không phát hiện tay, reset timer
+      handInBoxStartTime.current = null;
+    }
 
     if (isRest.current) {
       if (Date.now() - startTime.current >= countdown.current) {
@@ -120,10 +217,7 @@ const WebcamHolistic = ({ addWord }) => {
         setMessage("Sẵn sàng nhận diện!");
       }
     } else {
-      if (
-        !isRecording.current &&
-        (results.rightHandLandmarks || results.leftHandLandmarks)
-      ) {
+      if (!isRecording.current && results.leftHandLandmarks) {
         startRecording();
       } else if (isRecording.current) {
         const normalizedLandmarks = makeLandmarkTimestep(results);
@@ -158,13 +252,6 @@ const WebcamHolistic = ({ addWord }) => {
       setProgress(0); // Reset khi không ghi hoặc nghỉ
     }
   }, [isRecording.current, isRest.current]);
-
-  useEffect(() => {
-    if (detectedLabel) {
-      // speakText(detectedLabel);
-      addWord(detectedLabel);
-    }
-  }, [detectedLabel]);
 
   return (
     <div
