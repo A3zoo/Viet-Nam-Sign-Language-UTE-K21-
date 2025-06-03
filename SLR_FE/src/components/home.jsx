@@ -14,6 +14,7 @@ const Home = () => {
   const [listWord, setListWord] = useState([]);
   const [sentence, setSentence] = useState("");
   const [openAlert, setOpenAlert] = useState(false);
+  const [openAlertMerge, setOpenAlertMerge] = useState(false);
 
   const addWord = (detectedLabel) => {
     setListWord((prevList) => [...prevList, detectedLabel]);
@@ -23,8 +24,13 @@ const Home = () => {
     console.log("list::: ", listWord);
   }, [listWord]);
 
-  async function awaitMergeSentence() {
+  const awaitMergeSentence = async (listWord) => {
     try {
+      console.log("listWord::: ", listWord.length);
+      if (listWord.length === 0) {
+        setOpenAlertMerge(true);
+        return;
+      }
       const { GoogleGenerativeAI } = require("@google/generative-ai");
 
       const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GEMINI_KEY);
@@ -43,9 +49,9 @@ const Home = () => {
       alert("Đã có lỗi xảy ra", error);
       console.log(error);
     }
-  }
+  };
   const onClickMerge = () => {
-    awaitMergeSentence();
+    awaitMergeSentence(listWord);
   };
 
   const onClickRead = () => {
@@ -74,7 +80,10 @@ const Home = () => {
         <div className="webcamContainer">
           <WebcamHolistic
             addWord={addWord}
-            awaitReadSentence={awaitMergeSentence}
+            awaitMergeSentence={awaitMergeSentence}
+            onClickMerge={onClickMerge}
+            listWord={listWord}
+            setListWord={setListWord}
           />
         </div>
         <div
@@ -142,6 +151,25 @@ const Home = () => {
       >
         <Alert severity="warning" color="warning" onClose={handleCloseAlert}>
           Chưa có câu nào được ghép.
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={openAlertMerge}
+        autoHideDuration={3000}
+        onClose={() => {
+          setOpenAlertMerge(false);
+        }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert
+          severity="warning"
+          color="warning"
+          onClose={() => {
+            setOpenAlertMerge(false);
+          }}
+        >
+          Chưa có từ nào được nhận diện.
         </Alert>
       </Snackbar>
     </div>
