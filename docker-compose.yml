@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: SLR_BE/Dockerfile
+    container_name: slr-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - SLR_HOST=0.0.0.0
+      - SLR_PORT=8000
+      - SLR_ALLOW_URL=http://localhost:3000
+      - SLR_NUM_FRAME=30
+      - SLR_PREDICT_NUMBER=5
+    volumes:
+      - ./SLR_BE:/app
+      - ./model:/app/model
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: SLR_FE/Dockerfile
+    container_name: slr-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+
+networks:
+  default:
+    name: slr-network
+
