@@ -1,70 +1,159 @@
-# Getting Started with Create React App
+# SLR Frontend - React Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frontend application for the Vietnamese Sign Language Recognition system built with React and MediaPipe.
 
-## Available Scripts
+## 📋 Overview
 
-In the project directory, you can run:
+This is a React-based web application that provides a user interface for real-time sign language recognition. It uses MediaPipe's Holistic solution to capture hand and pose landmarks, which are then sent to the backend API for prediction.
 
-### `npm start`
+## 🛠 Technology Stack
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **React**: 18.3.1
+- **MediaPipe**: 
+  - @mediapipe/holistic
+  - @mediapipe/camera_utils
+  - @mediapipe/drawing_utils
+- **Axios**: For API communication
+- **React Scripts**: 5.0.1
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📦 Prerequisites
 
-### `npm test`
+- Node.js >= 14.x
+- npm >= 6.x
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🚀 Installation
 
-### `npm run build`
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Configure API endpoint** (if needed)
+   
+   Update the API base URL in `src/api/` or environment variables if your backend runs on a different port.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 💻 Usage
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Development Mode
 
-### `npm run eject`
+```bash
+npm start
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+The page will reload when you make changes. You may also see lint errors in the console.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Build for Production
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run build
+```
 
-## Learn More
+Builds the app for production to the `build` folder. It correctly bundles React in production mode and optimizes the build for the best performance.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The build is minified and the filenames include the hashes. Your app is ready to be deployed!
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Run Tests
 
-### Code Splitting
+```bash
+npm test
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Launches the test runner in interactive watch mode.
 
-### Analyzing the Bundle Size
+## 🐳 Docker Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Build Docker Image
 
-### Making a Progressive Web App
+```bash
+docker build -t slr-frontend .
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Run Docker Container
 
-### Advanced Configuration
+```bash
+docker run -p 3000:80 slr-frontend
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+The application will be available at `http://localhost:3000`
 
-### Deployment
+### Using Docker Compose
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+See the root `docker-compose.yml` for orchestrated deployment with the backend.
 
-### `npm run build` fails to minify
+## 📁 Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+SLR_FE/
+├── public/              # Static files
+│   ├── index.html
+│   └── ...
+├── src/
+│   ├── api/            # API service layer
+│   ├── components/     # React components
+│   ├── utils/          # Utility functions
+│   ├── styles/         # CSS/SCSS files
+│   ├── static/         # Static assets
+│   ├── App.js          # Main App component
+│   ├── App.css         # App styles
+│   └── index.js        # Entry point
+├── package.json        # Dependencies and scripts
+└── README.md           # This file
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+REACT_APP_API_URL=http://localhost:8000
+```
+
+### API Configuration
+
+The frontend communicates with the backend API. Ensure the backend is running and accessible at the configured URL.
+
+## 📱 Features
+
+- **Real-time Camera Feed**: Access and display webcam feed
+- **MediaPipe Integration**: Real-time hand and pose landmark detection
+- **Sign Language Recognition**: Send landmarks to backend for prediction
+- **Responsive Design**: Works on desktop and mobile devices
+- **Visual Feedback**: Display detected landmarks and predictions
+
+## 🐛 Troubleshooting
+
+### Camera Access Issues
+
+- Ensure you're using HTTPS or localhost (required for camera access)
+- Check browser permissions for camera access
+- Try a different browser if issues persist
+
+### API Connection Errors
+
+- Verify the backend server is running
+- Check the API URL configuration
+- Ensure CORS is properly configured on the backend
+
+### Build Errors
+
+- Clear node_modules and reinstall: `rm -rf node_modules && npm install`
+- Clear npm cache: `npm cache clean --force`
+- Check Node.js version compatibility
+
+## 📚 Learn More
+
+- [React Documentation](https://reactjs.org/)
+- [MediaPipe Documentation](https://mediapipe.dev/)
+- [Create React App Documentation](https://facebook.github.io/create-react-app/docs/getting-started)
+
+## 🤝 Contributing
+
+See the main project README for contributing guidelines.
+
+## 📝 License
+
+This project is licensed under the MIT License.
